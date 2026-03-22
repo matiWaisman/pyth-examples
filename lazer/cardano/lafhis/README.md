@@ -102,6 +102,10 @@ else                                →  🏆 Player B wins the full pot
 
 The **0.0001% draw threshold** prevents dust-level differences from picking a winner when the race is essentially tied.
 
+### Horseshoe Tokens
+
+Every duel winner receives 1 **Horseshoe** — a fungible Cardano token minted atomically in the same transaction that settles the duel. Because minting is gated by the `winner_token` Aiken validator (which requires the backend to co-sign), Horseshoes can only exist as proof of a real on-chain win. They accumulate in your wallet across duels and will form the basis of the leaderboard in a future version of CoinStable.
+
 ---
 
 ## 🛠️ Tech Stack
@@ -165,7 +169,7 @@ lafhis/
 
 ## 📜 Smart Contracts
 
-Two validators compiled to **Plutus v3** with Aiken.
+Three validators compiled to **Plutus v3** with Aiken.
 
 ### 🎟️ NFT Policy (`nft.ak`)
 
@@ -205,6 +209,24 @@ DuelDatum {
 | `Join` | Player B + Backend | Status = Waiting | Reads Pyth start prices, activates duel |
 | `Resolve` | Backend | Status = Active, after deadline | Calculates winner on-chain, pays out pot |
 | `Cancel` | Player A or Backend | Status = Waiting | Refunds Player A, burns NFT |
+
+### 🧲 Winner Token Policy (`winner_token.ak`)
+
+Mints and burns **Horseshoe** tokens — the fungible reward given to every duel winner. Parameterized at deploy time by:
+- `backend_pkh` — only the backend can authorize minting, ensuring tokens are only issued as part of a real `Resolve` transaction
+
+**Token:**
+- **Name:** `horseshoe` (UTF-8, fixed for all duels)
+- **Fungible:** yes — winners accumulate Horseshoes across duels; their balance is the leaderboard
+
+**Redeemers (actions):**
+
+| Action | Who | What Happens |
+|--------|-----|-------------|
+| `MintVictory` | Backend | Mints exactly 1 Horseshoe to the winner, atomically in the same TX as `Resolve` |
+| `BurnVictory` | Token holder | Burns any number of Horseshoes — no backend needed, owner controls their tokens |
+
+Because minting is atomic with resolution, a Horseshoe can only ever exist as cryptographic proof of a real on-chain win.
 
 ---
 
@@ -308,7 +330,7 @@ Lazer provides the zero-withdrawal pattern: prices are verified **inside the tra
 
 ## 👥 Team
 
-**LAFHIS** — We are students from LaFHIS lab at UBA. Built at Buenos Aires Pythathon, March 21–22, 2026.
+**LAFHIS** — We are students from LaFHIS lab at UBA. Built at Buenos Aires Pythathon, March 22, 2026.
 
 - **Felicitas Garcia** — felicitasgarcia01@gmail.com
 - **Ian Grinspan** — iangrinspan7@gmail.com
@@ -323,7 +345,8 @@ Built with ❤️, Cardano, Pyth Lazer, Aiken, MeshJS, and a lot of ☕.
 Ideas for what comes next:
 
 - **📉 Short positions** — Let players bet on an asset going *down*, not just up. The validator would need to distinguish long vs. short positions per player.
-- **🏆 Leaderboard** — Winners already receive a victory token on-chain. A leaderboard could rank players by token count, making every duel meaningful beyond the pot.
+- **🏆 Leaderboard** — Winners receive Horseshoe tokens on-chain. A leaderboard could rank players by Horseshoe balance, making every duel meaningful beyond the pot.
+- **🐴 Horse Sprite Marketplace** — A marketplace where players spend Horseshoes to purchase NFT horse sprites. Each sprite is a unique Cardano NFT that customizes your horse in the race UI — turning Horseshoes into a real in-game economy.
 - **🪙 More assets** — Expand beyond ADA/BTC/ETH/BNB to any feed available on Pyth (SOL, MATIC, AVAX, forex, commodities...).
 - **⏱️ Configurable duel duration** — Let the duel creator choose how long the race lasts (30s, 5min, 1h). The deadline is already a parameter in the datum.
 - **⚔️ Battle Royale** — More than two players in a single duel. The validator would need to generalize from two players to N, with a winner-takes-all or tiered payout.
