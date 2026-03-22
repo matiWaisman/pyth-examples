@@ -54,8 +54,7 @@ export default function Home() {
                 alt="CoinStable"
                 width={500}
                 height={250}
-                className="hidden shrink-0 translate-x-20 md:block"
-
+                className="hidden shrink-0 md:block -mr-16"
               />
             </div>
 
