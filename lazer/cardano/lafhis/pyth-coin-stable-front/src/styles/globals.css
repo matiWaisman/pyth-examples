@@ -1,3 +1,189 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --bg-1: #160f09;
+  --bg-2: #2a1a11;
+  --panel: #24170f;
+  --line: #f2bf78;
+  --line-soft: rgba(242, 191, 120, 0.2);
+  --text: #fff4df;
+  --pixel-horse: #ffd8a0;
+  --pixel-bear: #cde4ff;
+}
+
+html,
+body,
+#__next {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "IBM Plex Mono", monospace;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 12% 12%, rgba(245, 189, 112, 0.2), transparent 30%),
+    radial-gradient(circle at 88% 76%, rgba(151, 224, 184, 0.12), transparent 34%),
+    linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 60%, #120c08 100%);
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Press Start 2P", monospace;
+  letter-spacing: 0.03em;
+}
+
+.landing-root {
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-root::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.28;
+  background-image:
+    linear-gradient(var(--line-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.top-nav {
+  backdrop-filter: blur(4px);
+}
+
+.nav-chip {
+  border: 1px solid rgba(255, 213, 146, 0.35);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  line-height: 1.2;
+  color: #ffe4bb;
+  background: linear-gradient(180deg, rgba(255, 205, 129, 0.12), rgba(255, 205, 129, 0.03));
+  text-decoration: none;
+  transition: 160ms ease;
+}
+
+.nav-chip:hover {
+  border-color: rgba(255, 222, 167, 0.8);
+  color: #fff4df;
+  transform: translateY(-1px);
+}
+
+.wallet-cta {
+  border: 1px solid rgba(255, 230, 185, 0.72);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  line-height: 1.2;
+  color: #2a1a11;
+  background: linear-gradient(180deg, #ffd8a7, #f0b969);
+  box-shadow: 0 0 18px rgba(255, 199, 119, 0.28);
+  cursor: pointer;
+  transition: 160ms ease;
+}
+
+.wallet-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 22px rgba(255, 199, 119, 0.45);
+}
+
+.race-track {
+  background:
+    linear-gradient(180deg, rgba(242, 191, 120, 0.07), rgba(242, 191, 120, 0)),
+    linear-gradient(140deg, #1b120c, var(--panel));
+}
+
+.track-lane {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 213, 146, 0.25);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  background: linear-gradient(90deg, rgba(255, 203, 125, 0.12), rgba(255, 203, 125, 0.03));
+}
+
+.track-lane::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-bottom: 2px dashed rgba(255, 219, 163, 0.28);
+}
+
+.lane-tag {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #ffd59a;
+  font-weight: 700;
+}
+
+.lane-asset {
+  font-size: 0.72rem;
+  color: #fff2dc;
+  font-weight: 700;
+}
+
+.pixel-duel {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.duel-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 8px rgba(255, 206, 130, 0.25));
+}
+
+.pixel-vs {
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  color: #ffd9a7;
+}
+
+.runner {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  animation: run-lane 2.7s steps(2, end) infinite alternate;
+}
+
+.runner.delayed {
+  animation-delay: 0.5s;
+}
+
+.lane-horse {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 8px rgba(255, 206, 130, 0.2));
+}
+
+@keyframes run-lane {
+  from {
+    transform: translateX(-40px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}

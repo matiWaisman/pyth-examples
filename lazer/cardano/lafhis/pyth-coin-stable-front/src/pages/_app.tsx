@@ -1,12 +1,13 @@
 import "@/styles/globals.css";
-import "@meshsdk/react/styles.css";
 import type { AppProps } from "next/app";
-import { MeshProvider } from "@meshsdk/react";
+import Navbar from "@/components/Navbar";
+import { WalletProvider } from "@/context/WalletContext";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <MeshProvider>
+    <WalletProvider>
+      <Navbar />
       <Component {...pageProps} />
-    </MeshProvider>
+    </WalletProvider>
   );
 }
