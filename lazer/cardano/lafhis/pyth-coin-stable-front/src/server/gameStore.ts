@@ -46,6 +46,21 @@ export function createSession(config: GameConfig, creatorWallet: string) {
     playerOneWallet: wallet,
     playerTwoWallet: null,
     playerTwoRate: null,
+    onchain: {
+      duelId: null,
+      depositATxHash: null,
+      depositATxIndex: null,
+      depositBTxHash: null,
+      playerOnePkh: null,
+      playerTwoPkh: null,
+      playerOneFeedId: null,
+      playerTwoFeedId: null,
+      playerOnePriceFeedId: null,
+      playerTwoPriceFeedId: null,
+      startPriceA: null,
+      startPriceB: null,
+      deadlinePosix: null,
+    },
   };
 
   sessions.set(id, session);
@@ -54,6 +69,26 @@ export function createSession(config: GameConfig, creatorWallet: string) {
 
 export function getSession(id: string) {
   return sessions.get(id.toUpperCase()) ?? null;
+}
+
+export function updateSessionOnchain(
+  id: string,
+  patch: Partial<GameSession["onchain"]>,
+) {
+  const session = getSession(id);
+  if (!session) return null;
+
+  const updated: GameSession = {
+    ...session,
+    updatedAt: new Date().toISOString(),
+    onchain: {
+      ...session.onchain,
+      ...patch,
+    },
+  };
+
+  sessions.set(updated.id, updated);
+  return updated;
 }
 
 export function validateRate(input: unknown): GameConfig["rate"] | null {

@@ -1,10 +1,22 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
+import { BlockfrostProvider, resolvePaymentKeyHash } from "@meshsdk/core";
 import { useWallet } from "@meshsdk/react";
 import JoinGameConfigBar, { type JoinGameInput } from "@/components/JoinGameConfigBar";
 import RequireWallet from "@/components/RequireWallet";
+import { DURATION_TO_MS, getOnchainFeedId } from "@/lib/onchain";
+import { depositB } from "@/transactions/tx";
 import type { GameSession } from "@/types/game";
+import { HermesClient } from "@pythnetwork/hermes-client";
+
+type OnchainConfigResponse = {
+  blockfrostId?: string;
+  pythPolicyId?: string;
+  backendPkh?: string;
+  plutus?: { validators: Array<{ title: string; compiledCode: string }> };
+  error?: string;
+};
 
 function parseGameId(input: string) {
   const value = input.trim();
@@ -20,7 +32,7 @@ function parseGameId(input: string) {
 
 export default function JoinGamePage() {
   const router = useRouter();
-  const { address } = useWallet();
+  const { address, wallet } = useWallet();
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [gameInput, setGameInput] = useState("");
@@ -87,6 +99,16 @@ export default function JoinGamePage() {
     };
   }, [gameInput]);
 
+  async function resolveHermesFeedId(rate: GameSession["config"]["rate"]) {
+    const client = new HermesClient("https://hermes.pyth.network", {});
+    const feeds = await client.getPriceFeeds({ assetType: "crypto" });
+    const match = feeds.find((feed) => (feed.attributes.display_symbol ?? "").toUpperCase() === rate);
+    if (!match) {
+      throw new Error(`Missing Hermes feed id for ${rate}`);
+    }
+    return match.id;
+  }
+
   async function handleJoin({ selectedRate, gameInput }: JoinGameInput) {
     if (!address) {
       setError("Wallet address is still loading. Please wait and try again.");
@@ -113,6 +135,83 @@ export default function JoinGamePage() {
           throw new Error("You must pick a different asset than your opponent.");
         }
 
+        if (
+          !gameData.game.onchain.duelId ||
+          !gameData.game.onchain.depositATxHash ||
+          gameData.game.onchain.depositATxIndex == null ||
+          !gameData.game.onchain.playerOnePkh
+        ) {
+          throw new Error("Game is missing deposit A on-chain data");
+        }
+
+        const onchainConfigRes = await fetch("/api/onchain/deposit-a-config");
+        const onchainConfig = (await onchainConfigRes.json()) as OnchainConfigResponse;
+        if (!onchainConfigRes.ok) {
+          throw new Error(onchainConfig.error ?? "Could not load on-chain config");
+        }
+        if (
+          !onchainConfig.blockfrostId ||
+          !onchainConfig.pythPolicyId ||
+          !onchainConfig.backendPkh ||
+          !onchainConfig.plutus
+        ) {
+          throw new Error("Incomplete on-chain config");
+        }
+
+        const playerTwoPkh = resolvePaymentKeyHash(address);
+        const playerTwoPriceFeedId = await resolveHermesFeedId(selectedRate);
+        const provider = new BlockfrostProvider(onchainConfig.blockfrostId);
+        const utxos = await wallet.getUtxos();
+        const depositResult = await depositB({
+          provider,
+          wallet,
+          utxos,
+          playerTwoAddress: address,
+          playerOnePkh: gameData.game.onchain.playerOnePkh,
+          playerTwoPkh,
+          depositATxHash: gameData.game.onchain.depositATxHash,
+          depositATxIndex: gameData.game.onchain.depositATxIndex,
+          duelId: gameData.game.onchain.duelId,
+          backendPkh: onchainConfig.backendPkh,
+          pythPolicyId: onchainConfig.pythPolicyId,
+          blockfrostId: onchainConfig.blockfrostId,
+          priceFeedIdA: gameData.game.onchain.playerOnePriceFeedId ?? (await resolveHermesFeedId(gameData.game.config.rate)),
+          priceFeedIdB: playerTwoPriceFeedId,
+          plutus: onchainConfig.plutus,
+          feedA: gameData.game.onchain.playerOneFeedId ?? getOnchainFeedId(gameData.game.config.rate),
+          feedB: getOnchainFeedId(selectedRate),
+          bet_lovelace: Math.round(gameData.game.config.betAda * 1_000_000),
+          duelDuration: DURATION_TO_MS[gameData.game.config.duration],
+        });
+
+        const submitRes = await fetch("/api/onchain/deposit-b-submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ partiallySignedTx: depositResult.partiallySignedTx }),
+        });
+        const submitData = (await submitRes.json()) as { txHash?: string; error?: string };
+        if (!submitRes.ok || !submitData.txHash) {
+          throw new Error(submitData.error ?? "Backend failed to submit deposit B");
+        }
+
+        const persistRes = await fetch(`/api/games/${gameId}/onchain`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            depositBTxHash: submitData.txHash,
+            playerTwoPkh,
+            playerTwoFeedId: getOnchainFeedId(selectedRate),
+            playerTwoPriceFeedId,
+            startPriceA: depositResult.startPriceA,
+            startPriceB: depositResult.startPriceB,
+            deadlinePosix: depositResult.deadlinePosix,
+          }),
+        });
+        if (!persistRes.ok) {
+          const persistData = (await persistRes.json()) as { error?: string };
+          throw new Error(persistData.error ?? "Could not persist deposit B data");
+        }
+
         const joinRes = await fetch(`/api/games/${gameId}/join`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -126,7 +225,10 @@ export default function JoinGamePage() {
           throw new Error(joinData.error ?? "Could not join game");
         }
 
-        await router.push(`/game/${gameId}`);
+        console.log(`[join-game] depositB tx: ${submitData.txHash}`);
+        console.log(`[join-game] explorer: https://preprod.cardanoscan.io/transaction/${submitData.txHash}`);
+
+        await router.push(`/game/${gameId}?txHash=${submitData.txHash}`);
       } catch (err) {
         const message = err instanceof Error ? err.message : "Could not join game";
         setError(message);

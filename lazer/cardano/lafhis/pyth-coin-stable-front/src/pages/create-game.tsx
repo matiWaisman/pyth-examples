@@ -4,9 +4,11 @@ import { useState } from "react";
 import CreateGameConfigBar from "@/components/CreateGameConfigBar";
 import type { CreateGameConfigInput } from "@/components/CreateGameConfigBar";
 import RequireWallet from "@/components/RequireWallet";
+import { getOnchainFeedId } from "@/lib/onchain";
 import { depositA } from "@/transactions/tx";
-import { BlockfrostProvider } from "@meshsdk/core";
+import { BlockfrostProvider, resolvePaymentKeyHash } from "@meshsdk/core";
 import { useWallet } from "@meshsdk/react";
+import { HermesClient } from "@pythnetwork/hermes-client";
 
 type OnchainConfigResponse = {
   blockfrostId?: string;
@@ -21,6 +23,16 @@ export default function CreateGamePage() {
   const { address, wallet } = useWallet();
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  async function resolveHermesFeedId(rate: CreateGameConfigInput["rate"]) {
+    const client = new HermesClient("https://hermes.pyth.network", {});
+    const feeds = await client.getPriceFeeds({ assetType: "crypto" });
+    const match = feeds.find((feed) => (feed.attributes.display_symbol ?? "").toUpperCase() === rate);
+    if (!match) {
+      throw new Error(`Missing Hermes feed id for ${rate}`);
+    }
+    return match.id;
+  }
 
   async function handleCreate(config: CreateGameConfigInput) {
     if (!address) {
@@ -94,6 +106,25 @@ export default function CreateGamePage() {
       const txHash = submitData.txHash;
       console.log(`[create-game] depositA tx: ${txHash}`);
       console.log(`[create-game] explorer: https://preprod.cardanoscan.io/transaction/${txHash}`);
+
+      const playerOnePkh = resolvePaymentKeyHash(address);
+      const playerOnePriceFeedId = await resolveHermesFeedId(config.rate);
+      const onchainRes = await fetch(`/api/games/${data.game.id}/onchain`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          duelId: depositResult.duelId,
+          depositATxHash: txHash,
+          depositATxIndex: 0,
+          playerOnePkh,
+          playerOnePriceFeedId,
+          playerOneFeedId: getOnchainFeedId(config.rate),
+        }),
+      });
+      if (!onchainRes.ok) {
+        const onchainData = (await onchainRes.json()) as { error?: string };
+        throw new Error(onchainData.error ?? "Could not persist on-chain game data");
+      }
 
       await router.push(`/game/${data.game.id}?txHash=${txHash}`);
     } catch (err) {

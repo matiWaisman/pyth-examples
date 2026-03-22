@@ -17,4 +17,19 @@ export type GameSession = {
   playerOneWallet: string;
   playerTwoWallet: string | null;
   playerTwoRate: GameRate | null;
+  onchain: {
+    duelId: string | null;
+    depositATxHash: string | null;
+    depositATxIndex: number | null;
+    depositBTxHash: string | null;
+    playerOnePkh: string | null;
+    playerTwoPkh: string | null;
+    playerOneFeedId: number | null;
+    playerTwoFeedId: number | null;
+    playerOnePriceFeedId: string | null;
+    playerTwoPriceFeedId: string | null;
+    startPriceA: number | null;
+    startPriceB: number | null;
+    deadlinePosix: number | null;
+  };
 };
