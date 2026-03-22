@@ -260,7 +260,7 @@ validator bet(
                       let change_a = percent_change(sa, end_a)
                       let change_b = percent_change(sb, end_b)
                       let total = d.bet_amount_lovelace * 2
-                      let is_draw = abs(change_a - change_b) < 10_000
+                      let is_draw = abs(change_a - change_b) < 100
 
                       if is_draw {
                         // Draw: each player recovers their initial bet
