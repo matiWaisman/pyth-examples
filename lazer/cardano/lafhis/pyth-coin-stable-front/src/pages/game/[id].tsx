@@ -90,17 +90,17 @@ export default function GameLobbyPage() {
           title="Connect Wallet To Enter Game"
           description="Connect your wallet to join this game lobby."
         >
-          <section className="rounded-2xl border border-amber-300/35 bg-stone-900/70 p-5 md:p-7">
+          <section className="rounded-2xl border border-violet-500/25 bg-slate-900/70 p-5 md:p-7">
             <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center gap-2">
-                <h1 className="text-lg text-amber-100 md:text-xl">Game Lobby {id ? `#${id}` : ""}</h1>
+                <h1 className="text-lg text-slate-100 md:text-xl">Game Lobby {id ? `#${id}` : ""}</h1>
                 {id && (
                   <button
                     type="button"
                     aria-label="Copy game ID"
                     title="Copy game ID"
                     onClick={() => void copyText(id)}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-amber-300/40 bg-amber-200/10 text-amber-100/90 transition hover:border-amber-200/80 hover:text-amber-50"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-violet-500/35 bg-violet-400/10 text-violet-100/85 transition hover:border-violet-400/70 hover:text-slate-100"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -121,28 +121,28 @@ export default function GameLobbyPage() {
               <button
                 type="button"
                 onClick={() => void router.push("/join-game")}
-                className="w-fit rounded-lg border border-amber-300/40 bg-amber-200/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.08em] text-amber-100/90"
+                className="w-fit rounded-lg border border-violet-500/35 bg-violet-400/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.08em] text-violet-100/85"
               >
                 Join Another Game
               </button>
             </div>
 
-            {loading && <p className="text-sm text-amber-100/80">Loading game...</p>}
-            {error && <p className="mb-4 text-sm text-red-300">{error}</p>}
+            {loading && <p className="text-sm text-violet-100/75">Loading game...</p>}
+            {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
 
             {game && (
               <>
                 <div className="grid gap-3 md:grid-cols-2">
-                  <div className="rounded-xl border border-amber-300/25 bg-stone-950/65 p-4 text-xs text-amber-100/85">
-                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-amber-200">
+                  <div className="rounded-xl border border-violet-500/20 bg-slate-950/65 p-4 text-xs text-violet-100/80">
+                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-violet-300">
                       Players
                     </p>
                     <p>Player 1: {shortWallet(game.playerOneWallet)}</p>
                     <p className="mt-1">Player 2: {shortWallet(game.playerTwoWallet)}</p>
                   </div>
 
-                  <div className="rounded-xl border border-amber-300/25 bg-stone-950/65 p-4 text-xs text-amber-100/85">
-                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-amber-200">
+                  <div className="rounded-xl border border-violet-500/20 bg-slate-950/65 p-4 text-xs text-violet-100/80">
+                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-violet-300">
                       Game Config
                     </p>
                     <p>Player 1 asset: {game.config.rate}</p>
@@ -153,40 +153,40 @@ export default function GameLobbyPage() {
                 </div>
 
                 {isPlayerOne && (
-                  <div className="mt-4 rounded-xl border border-amber-300/30 bg-stone-950/65 p-4 text-xs text-amber-100/85">
-                    <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.1em] text-amber-200">
+                  <div className="mt-4 rounded-xl border border-violet-500/20 bg-slate-950/65 p-4 text-xs text-violet-100/80">
+                    <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.1em] text-violet-300">
                       Invite Your Opponent
                     </p>
                     <div className="flex flex-col gap-2 md:flex-row">
                       <button
                         type="button"
                         onClick={() => void copyText(game.id)}
-                        className="rounded-lg border border-amber-300/40 bg-amber-200/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.08em] text-amber-100/90"
+                        className="rounded-lg border border-violet-500/35 bg-violet-400/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.08em] text-violet-100/85"
                       >
                         Copy Game ID
                       </button>
                       <button
                         type="button"
                         onClick={() => void copyText(shareLink)}
-                        className="rounded-lg border border-amber-300/40 bg-amber-200/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.08em] text-amber-100/90"
+                        className="rounded-lg border border-violet-500/35 bg-violet-400/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.08em] text-violet-100/85"
                       >
                         Copy Invite Link
                       </button>
                     </div>
-                    <p className="mt-3 break-all text-amber-100/75">{shareLink}</p>
+                    <p className="mt-3 break-all text-violet-100/65">{shareLink}</p>
                   </div>
                 )}
 
-                <div className="mt-4 rounded-xl border border-amber-300/30 bg-stone-950/65 p-4 text-xs text-amber-100/85">
+                <div className="mt-4 rounded-xl border border-violet-500/20 bg-slate-950/65 p-4 text-xs text-violet-100/80">
                   {game.status === "ready" ? (
-                    <p className="text-emerald-300">Both players are in. The game is ready to start.</p>
+                    <p className="text-cyan-300">Both players are in. The game is ready to start.</p>
                   ) : canJoin ? (
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <p>This game has one player. Go to Join Game to choose your asset and join.</p>
                       <button
                         type="button"
                         onClick={() => void router.push(`/join-game?gameId=${id}`)}
-                        className="w-fit rounded-lg border border-amber-200/70 bg-amber-200/20 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] text-amber-50"
+                        className="w-fit rounded-lg border border-violet-400/60 bg-violet-400/15 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] text-slate-100"
                       >
                         Join Game Setup
                       </button>

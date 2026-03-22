@@ -1,6 +1,8 @@
 import Head from "next/head";
 import Image from "next/image";
-import { CardanoWallet, useWallet } from "@meshsdk/react";
+import { useWallet } from "@meshsdk/react";
+import PriceTicker from "@/components/PriceTicker";
+import DuelPreview from "@/components/DuelPreview";
 
 const steps = [
   {
@@ -22,7 +24,7 @@ const steps = [
 ];
 
 export default function Home() {
-  const { connected } = useWallet();
+  useWallet();
 
   return (
     <>
@@ -34,42 +36,42 @@ export default function Home() {
         />
       </Head>
 
-      <main className="landing-root text-amber-50">
+      <main className="landing-root text-slate-100">
         <section className="mx-auto max-w-6xl px-6 pb-10 pt-10 md:pt-12">
-          <div className="rounded-3xl border border-amber-300/40 bg-stone-950/75 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.45)] md:p-10">
-            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-300/50 bg-amber-300/10 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.24em] text-amber-200">
+          <div className="rounded-3xl border border-violet-500/25 bg-slate-950/75 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.55)] md:p-10">
+            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-violet-400/40 bg-violet-500/10 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.24em] text-violet-300">
               WEB3 RACE ARENA
             </p>
 
-            <h1 className="max-w-4xl text-3xl leading-tight text-amber-50 md:text-5xl">
+            <h1 className="max-w-4xl text-3xl leading-tight text-slate-100 md:text-5xl">
               Traders Duel
-              <span className="mt-2 block text-amber-300">Powered by Pyth</span>
+              <span className="mt-2 block text-violet-400">Powered by Pyth</span>
             </h1>
 
-            <p className="mt-5 max-w-3xl text-sm text-amber-100/90 md:text-base">
+            <p className="mt-5 max-w-3xl text-sm text-violet-100/80 md:text-base">
               Two players, two assets, one ADA pot, and a time window.
               The winner is determined by percentage change using Pyth signed prices.
             </p>
 
             <div className="mt-8 grid gap-4 md:grid-cols-[1.25fr_1fr]">
-              <div className="race-track rounded-2xl border border-amber-300/30 bg-stone-900/70 p-4 md:p-6">
+              <div className="race-track min-w-0 rounded-2xl border border-violet-500/25 bg-slate-900/70 p-4 md:p-6">
                 <div className="mb-4 flex items-center justify-between gap-3">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-300">
                     Live Duel Track
                   </p>
                   <div className="pixel-duel">
                     <Image
                       className="duel-img"
-                      src="/img/cardano_horse.png"
-                      alt="Cardano horse"
+                      src="/img/Screenshot_2026-03-22_at_3.21.42_PM-removebg-preview.png"
+                      alt="ADA horse"
                       width={44}
                       height={44}
                     />
                     <span className="pixel-vs">VS</span>
                     <Image
                       className="duel-img"
-                      src="/img/bitcoin_horse.png"
-                      alt="Bitcoin horse"
+                      src="/img/Screenshot_2026-03-22_at_3.21.30_PM-removebg-preview.png"
+                      alt="Pyth horse"
                       width={44}
                       height={44}
                     />
@@ -82,7 +84,7 @@ export default function Home() {
                   <span className="runner">
                     <Image
                       className="lane-horse"
-                      src="/img/cardano_horse.png"
+                      src="/img/Screenshot_2026-03-22_at_3.21.42_PM-removebg-preview.png"
                       alt="ADA horse"
                       width={52}
                       height={52}
@@ -96,60 +98,67 @@ export default function Home() {
                   <span className="runner delayed">
                     <Image
                       className="lane-horse"
-                      src="/img/bitcoin_horse.png"
-                      alt="BTC horse"
+                      src="/img/Screenshot_2026-03-22_at_3.21.30_PM-removebg-preview.png"
+                      alt="Pyth horse"
                       width={52}
                       height={52}
                     />
                   </span>
                 </div>
 
-                <p className="mt-4 text-xs text-amber-100/80">
+                <p className="mt-4 text-xs text-violet-100/70">
                   The winner is determined by <strong>% change</strong>.
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-amber-300/30 bg-stone-900/70 p-4 md:p-6">
-                <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-amber-200">
-                  Ready To Enter
+              <div className="flex min-w-0 flex-col rounded-2xl border border-violet-500/25 bg-slate-900/70 p-4 md:p-6">
+                <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-violet-300">
+                  How It Works
                 </p>
-                <p className="mb-4 text-xs text-amber-100/80">
-                  Connect your wallet to create a duel or accept a challenge link.
-                </p>
-                <div className="wallet-nav-control mb-4">
-                  <CardanoWallet persist />
-                </div>
-                {connected && (
-                  <div className="rounded-xl border border-amber-200/25 bg-stone-950/70 p-3 text-xs text-amber-100/85">
-                    Preset stake: <strong>10 / 25 / 50 ADA</strong>
-                  </div>
-                )}
+                <DuelPreview />
               </div>
             </div>
           </div>
         </section>
 
+        <section className="mx-auto max-w-6xl px-6 pt-6 pb-2">
+          <div className="mb-3 flex items-end justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-violet-400">
+                Powered by Pyth Network
+              </p>
+              <h2 className="mt-1 text-base text-slate-100 md:text-lg">
+                Live Market Feeds
+              </h2>
+              <p className="mt-1 text-[11px] text-violet-100/55">
+                Real-time crypto prices sourced directly from Pyth oracle — the same feeds used to settle every duel on-chain.
+              </p>
+            </div>
+          </div>
+          <PriceTicker />
+        </section>
+
         <section className="mx-auto max-w-6xl px-6 py-8">
-          <h2 className="mb-5 text-xl text-amber-100 md:text-2xl">GAME FLOW</h2>
+          <h2 className="mb-5 text-xl text-slate-100 md:text-2xl">GAME FLOW</h2>
           <div className="grid gap-4 md:grid-cols-2">
             {steps.map((step) => (
               <article
                 key={step.title}
-                className="rounded-2xl border border-amber-300/25 bg-stone-900/65 p-5"
+                className="rounded-2xl border border-violet-500/20 bg-slate-900/60 p-5"
               >
-                <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-amber-200">
+                <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-violet-300">
                   {step.title}
                 </h3>
-                <p className="mt-3 text-xs text-amber-100/85">{step.text}</p>
+                <p className="mt-3 text-xs text-violet-100/75">{step.text}</p>
               </article>
             ))}
           </div>
         </section>
 
         <section className="mx-auto max-w-6xl px-6 pb-14 pt-8">
-          <div className="rounded-3xl border border-amber-300/35 bg-gradient-to-r from-amber-950/45 via-stone-950/90 to-emerald-950/35 p-6 md:p-8">
-            <h2 className="text-xl text-amber-100 md:text-2xl">VERIFIABLE BY DESIGN</h2>
-            <p className="mt-3 max-w-3xl text-xs text-amber-100/85 md:text-sm">
+          <div className="rounded-3xl border border-violet-500/25 bg-gradient-to-r from-violet-950/40 via-slate-950/90 to-cyan-950/30 p-6 md:p-8">
+            <h2 className="text-xl text-slate-100 md:text-2xl">VERIFIABLE BY DESIGN</h2>
+            <p className="mt-3 max-w-3xl text-xs text-violet-100/80 md:text-sm">
               We use Pyth to settle wagers with signed and verifiable prices.
               That makes duel outcomes reliable and transparent on Cardano.
             </p>
