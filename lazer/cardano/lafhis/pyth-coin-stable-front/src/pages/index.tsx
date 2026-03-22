@@ -29,7 +29,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Traders Duel | Web3 Race Arena</title>
+        <title>CoinStable | Web3 Race Arena</title>
         <meta
           name="description"
           content="Web3 landing for Traders Duel: asset racing on Cardano with Pyth signed prices."
@@ -39,14 +39,25 @@ export default function Home() {
       <main className="landing-root text-slate-100">
         <section className="mx-auto max-w-6xl px-6 pb-10 pt-10 md:pt-12">
           <div className="rounded-3xl border border-violet-500/25 bg-slate-950/75 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.55)] md:p-10">
-            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-violet-400/40 bg-violet-500/10 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.24em] text-violet-300">
-              WEB3 RACE ARENA
-            </p>
+            <div className="flex items-center justify-between gap-6">
+              <div>
+                <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-violet-400/40 bg-violet-500/10 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.24em] text-violet-300">
+                  WEB3 RACE ARENA
+                </p>
+                <h1 className="max-w-4xl text-3xl leading-tight text-slate-100 md:text-5xl">
+                  CoinStable
+                  <span className="mt-2 block text-violet-400">Powered by Pyth</span>
+                </h1>
+              </div>
+              <Image
+                src="/img/biglogo.png"
+                alt="CoinStable"
+                width={500}
+                height={250}
+                className="hidden shrink-0 translate-x-20 md:block"
 
-            <h1 className="max-w-4xl text-3xl leading-tight text-slate-100 md:text-5xl">
-              Traders Duel
-              <span className="mt-2 block text-violet-400">Powered by Pyth</span>
-            </h1>
+              />
+            </div>
 
             <p className="mt-5 max-w-3xl text-sm text-violet-100/80 md:text-base">
               Two players, two assets, one ADA pot, and a time window.

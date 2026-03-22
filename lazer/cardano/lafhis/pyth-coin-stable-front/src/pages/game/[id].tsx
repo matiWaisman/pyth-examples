@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { useWallet } from "@meshsdk/react";
 import RequireWallet from "@/components/RequireWallet";
+import DuelPreview from "@/components/DuelPreview";
 import type { GameSession } from "@/types/game";
 
 function shortWallet(wallet: string | null) {
@@ -174,6 +175,20 @@ export default function GameLobbyPage() {
                       </button>
                     </div>
                     <p className="mt-3 break-all text-violet-100/65">{shareLink}</p>
+                  </div>
+                )}
+
+                {game.status === "ready" && game.playerTwoRate && (
+                  <div className="mt-4 rounded-xl border border-violet-500/20 bg-slate-950/65 p-4">
+                    <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.1em] text-violet-300">
+                      Live Race
+                    </p>
+                    <DuelPreview
+                      symA={game.config.rate}
+                      symB={game.playerTwoRate}
+                      autoStart
+                      duration={game.config.duration}
+                    />
                   </div>
                 )}
 

@@ -1,24 +1,26 @@
 import { HermesClient } from "@pythnetwork/hermes-client";
 import { useEffect, useRef, useState } from "react";
+import type { GameDuration } from "@/types/game";
 
-const SYMBOLS = ["ADA/USD", "BTC/USD"] as const;
-type Sym = (typeof SYMBOLS)[number];
-const RACE_SECONDS = 60;
 type RaceState = "idle" | "running" | "finished";
+
+const DURATION_SECONDS: Record<GameDuration, number> = {
+  "1m": 60,
+  "5m": 300,
+  "1h": 3600,
+};
 
 async function fetchLatestPrices(
   client: HermesClient,
-  ids: Record<Sym, string>,
-): Promise<Record<Sym, number> | null> {
+  ids: Record<string, string>,
+): Promise<Record<string, number> | null> {
   try {
     const updates = await client.getLatestPriceUpdates(Object.values(ids));
     const parsed = updates.parsed ?? [];
-    const result = {} as Record<Sym, number>;
+    const result: Record<string, number> = {};
     for (const feed of parsed) {
       const entry = Object.entries(ids).find(([, id]) => id === feed.id);
-      if (entry) {
-        result[entry[0] as Sym] = Number(feed.price.price) * Math.pow(10, feed.price.expo);
-      }
+      if (entry) result[entry[0]] = Number(feed.price.price) * Math.pow(10, feed.price.expo);
     }
     return result;
   } catch {
@@ -26,7 +28,9 @@ async function fetchLatestPrices(
   }
 }
 
-function Bar({ width, color, negative }: { width: number; color: "violet" | "cyan"; negative: boolean }) {
+function Bar({ pct, scaleMax, color }: { pct: number; scaleMax: number; color: "violet" | "cyan" }) {
+  const negative = pct < 0;
+  const halfFill = Math.min((Math.abs(pct) / scaleMax) * 50, 50);
   const bg = negative
     ? "bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.6)]"
     : color === "violet"
@@ -34,53 +38,38 @@ function Bar({ width, color, negative }: { width: number; color: "violet" | "cya
       : "bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.7)]";
 
   return (
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+    <div className="relative h-1.5 w-full rounded-full bg-slate-800">
+      <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-slate-500" />
       <div
-        className={`h-full rounded-full transition-all duration-500 ${bg}`}
-        style={{ width: `${Math.max(width, 2)}%` }}
+        className={`absolute inset-y-0 rounded-full transition-all duration-500 ${bg}`}
+        style={negative ? { right: "50%", width: `${halfFill}%` } : { left: "50%", width: `${halfFill}%` }}
       />
     </div>
   );
 }
 
 function Lane({
-  sym,
-  color,
-  currentPrice,
-  pctChange,
-  barWidth,
-  leading,
-  winner,
-  raceState,
+  sym, color, currentPrice, pctChange, scaleMax, leading, winner, raceState,
 }: {
-  sym: Sym;
-  color: "violet" | "cyan";
-  currentPrice: number | null;
-  pctChange: number | null;
-  barWidth: number;
-  leading: boolean;
-  winner: boolean;
-  raceState: RaceState;
+  sym: string; color: "violet" | "cyan"; currentPrice: number | null;
+  pctChange: number | null; scaleMax: number; leading: boolean;
+  winner: boolean; raceState: RaceState;
 }) {
   const text = color === "violet" ? "text-violet-300" : "text-cyan-300";
   const border = color === "violet" ? "border-violet-500/30" : "border-cyan-500/25";
-  const winnerRing = winner ? "ring-1 ring-emerald-400/50" : "";
   const negative = pctChange !== null && pctChange < 0;
+  const pctColor = negative ? "text-red-400" : "text-emerald-400";
 
   return (
-    <div className={`rounded-xl border ${border} ${winnerRing} bg-slate-950/50 p-3 transition-all duration-300`}>
+    <div className={`rounded-xl border ${border} ${winner ? "ring-1 ring-emerald-400/50" : ""} bg-slate-950/50 p-3 transition-all duration-300`}>
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className={`text-[11px] font-bold ${text}`}>{sym}</span>
         <div className="flex items-center gap-1.5">
           {winner && (
-            <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-emerald-400">
-              winner
-            </span>
+            <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-emerald-400">winner</span>
           )}
           {leading && !winner && (
-            <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-emerald-400">
-              leading
-            </span>
+            <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-emerald-400">leading</span>
           )}
           {raceState === "idle" && currentPrice !== null && (
             <span className="text-[11px] font-bold tabular-nums text-slate-300">
@@ -88,53 +77,77 @@ function Lane({
             </span>
           )}
           {raceState !== "idle" && pctChange !== null && (
-            <span className={`text-[13px] font-bold tabular-nums ${negative ? "text-red-400" : "text-emerald-400"}`}>
+            <span className={`text-[13px] font-bold tabular-nums ${pctColor}`}>
               {pctChange >= 0 ? "+" : ""}{pctChange.toFixed(3)}%
             </span>
           )}
           {raceState !== "idle" && pctChange === null && (
-            <span className="text-[10px] text-slate-500 animate-pulse">loading…</span>
+            <span className="animate-pulse text-[10px] text-slate-500">loading…</span>
           )}
         </div>
       </div>
       {raceState !== "idle" && (
-        <Bar width={barWidth} color={color} negative={negative} />
+        <>
+          <Bar pct={pctChange ?? 0} scaleMax={scaleMax} color={color} />
+          <div className="mt-0.5 flex justify-between text-[8px] text-slate-600">
+            <span>-{scaleMax.toFixed(2)}%</span>
+            <span>0</span>
+            <span>+{scaleMax.toFixed(2)}%</span>
+          </div>
+        </>
       )}
     </div>
   );
 }
 
-export default function DuelPreview() {
+type DuelPreviewProps = {
+  symA?: string;
+  symB?: string;
+  autoStart?: boolean;
+  duration?: GameDuration;
+};
+
+export default function DuelPreview({
+  symA = "ADA/USD",
+  symB = "BTC/USD",
+  autoStart = false,
+  duration = "1m",
+}: DuelPreviewProps) {
+  const raceSecs = DURATION_SECONDS[duration];
+
   const [raceState, setRaceState] = useState<RaceState>("idle");
-  const [seconds, setSeconds] = useState(RACE_SECONDS);
-  const [currentPrices, setCurrentPrices] = useState<Partial<Record<Sym, number>>>({});
-  const [startPrices, setStartPrices] = useState<Partial<Record<Sym, number>>>({});
+  const [seconds, setSeconds] = useState(raceSecs);
+  const [currentPrices, setCurrentPrices] = useState<Record<string, number>>({});
+  const [startPrices, setStartPrices] = useState<Record<string, number>>({});
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
   const clientRef = useRef<HermesClient | null>(null);
-  const feedIdsRef = useRef<Record<Sym, string> | null>(null);
+  const feedIdsRef = useRef<Record<string, string> | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const client = new HermesClient("https://hermes.pyth.network", {});
     clientRef.current = client;
+    const symbols = [symA, symB];
 
     void (async () => {
       try {
         const allFeeds = await client.getPriceFeeds({ assetType: "crypto" });
-        const ids: Partial<Record<Sym, string>> = {};
+        const ids: Record<string, string> = {};
         for (const feed of allFeeds) {
-          const sym = (feed.attributes.display_symbol ?? "").toUpperCase() as Sym;
-          if ((SYMBOLS as readonly string[]).includes(sym)) ids[sym] = feed.id;
+          const sym = (feed.attributes.display_symbol ?? "").toUpperCase();
+          if (symbols.includes(sym)) ids[sym] = feed.id;
         }
-        if (!ids["ADA/USD"] || !ids["BTC/USD"]) return;
-        feedIdsRef.current = ids as Record<Sym, string>;
+        if (!ids[symA] || !ids[symB]) return;
+        feedIdsRef.current = ids;
 
-        const prices = await fetchLatestPrices(client, feedIdsRef.current);
+        const prices = await fetchLatestPrices(client, ids);
         if (prices) setCurrentPrices(prices);
         setReady(true);
+
+        if (autoStart) void triggerStart(client, ids);
       } catch {
         setError("Could not connect to Pyth.");
       }
@@ -144,28 +157,23 @@ export default function DuelPreview() {
       if (pollRef.current) clearInterval(pollRef.current);
       if (countdownRef.current) clearInterval(countdownRef.current);
     };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [symA, symB, autoStart]);
 
-  async function startRace() {
-    if (!clientRef.current || !feedIdsRef.current) return;
-    setError(null);
-
-    const prices = await fetchLatestPrices(clientRef.current, feedIdsRef.current);
+  async function triggerStart(client: HermesClient, ids: Record<string, string>) {
+    const prices = await fetchLatestPrices(client, ids);
     if (!prices) { setError("Failed to fetch prices. Try again."); return; }
 
     setStartPrices(prices);
     setCurrentPrices(prices);
-    setSeconds(RACE_SECONDS);
+    setSeconds(raceSecs);
     setRaceState("running");
 
     pollRef.current = setInterval(() => {
-      void (async () => {
-        const p = await fetchLatestPrices(clientRef.current!, feedIdsRef.current!);
-        if (p) setCurrentPrices(p);
-      })();
+      void fetchLatestPrices(client, ids).then((p) => { if (p) setCurrentPrices(p); });
     }, 3000);
 
-    let s = RACE_SECONDS;
+    let s = raceSecs;
     countdownRef.current = setInterval(() => {
       s -= 1;
       setSeconds(s);
@@ -177,13 +185,18 @@ export default function DuelPreview() {
     }, 1000);
   }
 
+  async function startRace() {
+    if (!clientRef.current || !feedIdsRef.current) return;
+    setError(null);
+    await triggerStart(clientRef.current, feedIdsRef.current);
+  }
+
   function resetRace() {
     if (pollRef.current) clearInterval(pollRef.current);
     if (countdownRef.current) clearInterval(countdownRef.current);
     setRaceState("idle");
-    setSeconds(RACE_SECONDS);
+    setSeconds(raceSecs);
     setStartPrices({});
-    // refresh idle prices
     if (clientRef.current && feedIdsRef.current) {
       void fetchLatestPrices(clientRef.current, feedIdsRef.current).then((p) => {
         if (p) setCurrentPrices(p);
@@ -191,52 +204,52 @@ export default function DuelPreview() {
     }
   }
 
-  function getPct(sym: Sym): number | null {
+  function getPct(sym: string): number | null {
     const start = startPrices[sym];
     const cur = currentPrices[sym];
     if (!start || !cur) return null;
     return ((cur - start) / start) * 100;
   }
 
-  const adaPct = getPct("ADA/USD");
-  const btcPct = getPct("BTC/USD");
-  const adaLeading = adaPct !== null && btcPct !== null && adaPct >= btcPct;
-
-  // Scale bars relative to the highest absolute change so the leader always reads ~85%
-  const maxAbs = Math.max(Math.abs(adaPct ?? 0), Math.abs(btcPct ?? 0), 0.00001);
-  const LEADER_WIDTH = 85;
-  const adaBarWidth = adaPct !== null ? (Math.abs(adaPct) / maxAbs) * LEADER_WIDTH : 0;
-  const btcBarWidth = btcPct !== null ? (Math.abs(btcPct) / maxAbs) * LEADER_WIDTH : 0;
-
-  const winner: Sym | null =
-    raceState === "finished" && adaPct !== null && btcPct !== null
-      ? adaPct >= btcPct ? "ADA/USD" : "BTC/USD"
+  const pctA = getPct(symA);
+  const pctB = getPct(symB);
+  const aLeading = pctA !== null && pctB !== null && pctA >= pctB;
+  const winner =
+    raceState === "finished" && pctA !== null && pctB !== null
+      ? pctA >= pctB ? symA : symB
       : null;
+
+  const scaleMax = Math.max(0.15, Math.abs(pctA ?? 0), Math.abs(pctB ?? 0));
 
   const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
   const ss = String(seconds % 60).padStart(2, "0");
+  const isDemo = !autoStart;
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-violet-100/40">Demo Duel</p>
+        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-violet-100/40">
+          {isDemo ? "Demo Duel" : "Live Race"}
+        </p>
         <span className={`rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider
           ${raceState === "running"
             ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
             : raceState === "finished"
               ? "border-violet-500/30 bg-violet-500/10 text-violet-300"
               : "border-slate-600/40 bg-slate-800/40 text-slate-400"}`}>
-          {raceState === "running" ? "● live" : raceState === "finished" ? "finished" : "ready"}
+          {raceState === "running" ? "● live" : raceState === "finished" ? "finished" : ready ? "ready" : "loading…"}
         </span>
       </div>
 
-      <Lane sym="ADA/USD" color="violet" currentPrice={currentPrices["ADA/USD"] ?? null}
-        pctChange={adaPct} barWidth={adaBarWidth} leading={raceState === "running" && adaLeading}
-        winner={winner === "ADA/USD"} raceState={raceState} />
+      <Lane sym={symA} color="violet" currentPrice={currentPrices[symA] ?? null}
+        pctChange={pctA} scaleMax={scaleMax}
+        leading={raceState === "running" && aLeading}
+        winner={winner === symA} raceState={raceState} />
 
-      <Lane sym="BTC/USD" color="cyan" currentPrice={currentPrices["BTC/USD"] ?? null}
-        pctChange={btcPct} barWidth={btcBarWidth} leading={raceState === "running" && !adaLeading && btcPct !== null}
-        winner={winner === "BTC/USD"} raceState={raceState} />
+      <Lane sym={symB} color="cyan" currentPrice={currentPrices[symB] ?? null}
+        pctChange={pctB} scaleMax={scaleMax}
+        leading={raceState === "running" && !aLeading && pctB !== null}
+        winner={winner === symB} raceState={raceState} />
 
       <div className="flex items-center justify-between rounded-xl border border-slate-700/40 bg-slate-950/50 px-3 py-2.5">
         <div className="flex items-center gap-1.5">
@@ -248,18 +261,16 @@ export default function DuelPreview() {
           </span>
         </div>
 
-        {raceState === "idle" && (
+        {raceState === "idle" && !autoStart && (
           <button onClick={() => void startRace()} disabled={!ready}
             className="flex items-center gap-1.5 rounded-lg border border-violet-400/60 bg-violet-500/20 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-violet-200 transition hover:bg-violet-500/30 disabled:cursor-wait disabled:opacity-40">
             <span>▶</span> Start Race
           </button>
         )}
-
         {raceState === "running" && (
-          <span className="text-[9px] text-slate-500 animate-pulse">Fetching live from Pyth…</span>
+          <span className="animate-pulse text-[9px] text-slate-500">Fetching live from Pyth…</span>
         )}
-
-        {raceState === "finished" && (
+        {raceState === "finished" && !autoStart && (
           <button onClick={resetRace}
             className="rounded-lg border border-cyan-400/50 bg-cyan-500/15 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-cyan-300 transition hover:bg-cyan-500/25">
             ↺ Race Again
@@ -274,7 +285,7 @@ export default function DuelPreview() {
           ? "Live prices from Pyth · press Start to begin"
           : raceState === "running"
             ? "Highest % change at end of window wins the pot"
-            : `${winner} wins this demo round`}
+            : `${winner} wins this ${isDemo ? "demo round" : "race"}`}
       </p>
     </div>
   );
