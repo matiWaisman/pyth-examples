@@ -5,14 +5,18 @@ use cardano/assets
 use cardano/assets.{PolicyId}
 use cardano/transaction.{Transaction}
 
+// Token name for all victory tokens — fungible, same name across all duels.
+// "horseshoe" encoded as UTF-8 hex
+const horseshoe: ByteArray = "686f727365736f6f65"
+
 // ── Redeemer ──────────────────────────────────────────────
 
 pub type WinnerRedeemer {
-  // Mints exactly 1 victory token with asset_name = duel_id.
+  // Mints exactly 1 "horseshoe" token to the winner.
   // Called by the backend in the same TX as Resolve.
-  MintVictory { duel_id: ByteArray }
+  MintVictory
 
-  // Burns one or more victory tokens (e.g. future leaderboard redemption).
+  // Burns one or more horseshoe tokens (future work: leaderboard redemption).
   BurnVictory
 }
 
@@ -29,7 +33,8 @@ fn signed_by(tx: Transaction, pkh: VerificationKeyHash) -> Bool {
 //
 // Usage:
 //   The backend includes this mint alongside the Resolve spend in one TX.
-//   That single atomic TX settles the duel AND awards the victory token.
+//   That single atomic TX settles the duel AND awards 1 horseshoe to the winner.
+//   Winners accumulate horseshoes across duels — their balance is the leaderboard.
 
 validator winner_token(backend_pkh: VerificationKeyHash) {
   mint(
@@ -41,16 +46,15 @@ validator winner_token(backend_pkh: VerificationKeyHash) {
 
       // ── MINT VICTORY ─────────────────────────────────────
       // Conditions:
-      //   1. Backend signs the TX (only issued after a real Resolve)
-      //   2. Exactly 1 token minted under this policy,
-      //      with asset_name = duel_id (traceable back to the duel)
-      MintVictory { duel_id } -> {
+      //   1. Backend signs the TX (only issued on a real Resolve)
+      //   2. Exactly 1 "horseshoe" token minted under this policy
+      MintVictory -> {
         let backend_ok = signed_by(self, backend_pkh)
 
         let mint_ok =
           when assets.tokens(self.mint, policy_id) |> dict.to_pairs is {
             [Pair(asset_name, quantity)] ->
-              asset_name == duel_id && quantity == 1
+              asset_name == horseshoe && quantity == 1
             _ -> False
           }
 
@@ -58,8 +62,7 @@ validator winner_token(backend_pkh: VerificationKeyHash) {
       }
 
       // ── BURN VICTORY ─────────────────────────────────────
-      // Allows holders to burn their tokens (e.g. for future redemptions).
-      // No backend signature required — the owner controls their token.
+      // Holders can burn their own tokens (no backend needed).
       BurnVictory -> {
         assets.tokens(self.mint, policy_id)
           |> dict.values()
