@@ -44,8 +44,14 @@ import {
   resolveSlotNo,
 } from "@meshsdk/core";
 import { createHash } from "crypto";
+import { writeFileSync } from "fs";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 dotenv.config();
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const DUEL_STATE_FILE = resolve(__dirname, "../duel-state.json");
 
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -64,8 +70,8 @@ const BACKEND_PKH      = required("BACKEND_PKH");
 const MNEMONIC           = required("MNEMONIC").split(" ");
 
 
-const FEED_A = 16;  // ADA/USD
-const BET_LOVELACE = 5_000_000; // 5 ADA
+const FEED_A = 16;  // ADA/USD. TODO: parameter
+const BET_LOVELACE = 5_000_000; // 5 ADA. TODO: parameter
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SCRIPT SETUP — apply parameters to real validators
@@ -210,7 +216,14 @@ async function depositA(provider, wallet, address, utxos, playerPkh) {
     deadline: null,
   });
 
-  console.log(`Datum sent to BET script: ${JSON.stringify(datum)}\n`);
+  console.log("  Datum sent to BET script:");
+  console.log(`    duel_id:     ${duelId}`);
+  console.log(`    player_a:    pkh=${playerPkh}  feed_id=${FEED_A}  start_price=None`);
+  console.log(`    player_b:    None`);
+  console.log(`    bet_lovelace:${BET_LOVELACE}`);
+  console.log(`    status:      Waiting (0)`);
+  console.log(`    deadline:    None`);
+  console.log();
 
   const mintRedeemer = mConStr0([outputRefD(seed.txHash, seed.outputIndex)]);
 
@@ -238,8 +251,20 @@ async function depositA(provider, wallet, address, utxos, playerPkh) {
   const signed = await wallet.signTx(unsigned);
   const txHash = await wallet.submitTx(signed);
 
+  const state = {
+    txHash,
+    txIndex: 0,
+    duelId,
+    playerA_pkh: playerPkh,
+    betLovelace: BET_LOVELACE,
+    mintPolicyId,
+    scriptAddress,
+  };
+  writeFileSync(DUEL_STATE_FILE, JSON.stringify(state, null, 2));
+
   console.log("  TX submitted:", txHash);
   console.log("  https://preprod.cardanoscan.io/transaction/" + txHash);
+  console.log("  Duel state saved to duel-state.json");
   console.log();
   return { txHash, duelId };
 }
@@ -261,7 +286,7 @@ async function main() {
   // Use a fake PKH for testing (28 bytes = 56 hex chars)
   // In prod these come from the connected wallets
   const playerA_pkh = "aa".repeat(28);
-//   const playerB_pkh = "bb".repeat(28);
+//   
 
   // ── Step 1: DepositA ──
   const { txHash: depositATxHash, duelId } = await depositA(
