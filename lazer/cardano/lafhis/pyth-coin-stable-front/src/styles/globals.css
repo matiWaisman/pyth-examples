@@ -59,6 +59,12 @@ h3 {
   backdrop-filter: blur(4px);
 }
 
+.nav-logo {
+  height: 34px;
+  width: auto;
+  object-fit: contain;
+}
+
 .nav-chip {
   border: 1px solid rgba(255, 213, 146, 0.35);
   border-radius: 8px;
@@ -76,6 +82,101 @@ h3 {
   border-color: rgba(255, 222, 167, 0.8);
   color: #fff4df;
   transform: translateY(-1px);
+}
+
+.wallet-nav-control button[aria-haspopup="dialog"],
+.wallet-nav-control button[aria-haspopup="menu"] {
+  border: 1px solid rgba(255, 213, 146, 0.35);
+  border-radius: 8px;
+  padding: 9px 11px;
+  height: auto;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  line-height: 1.2;
+  color: #ffe4bb;
+  background: linear-gradient(180deg, rgba(255, 205, 129, 0.12), rgba(255, 205, 129, 0.03));
+  box-shadow: none;
+  transition: 160ms ease;
+}
+
+.wallet-nav-control button[aria-haspopup="dialog"] {
+  border-color: rgba(255, 222, 167, 0.58);
+  color: #fff0d6;
+  background: linear-gradient(180deg, rgba(255, 214, 145, 0.28), rgba(255, 205, 129, 0.08));
+  box-shadow: 0 0 14px rgba(255, 199, 119, 0.24);
+}
+
+.wallet-nav-control button[aria-haspopup="dialog"]:hover,
+.wallet-nav-control button[aria-haspopup="menu"]:hover {
+  border-color: rgba(255, 222, 167, 0.8);
+  color: #fff4df;
+  transform: translateY(-1px);
+}
+
+.wallet-nav-control button[aria-haspopup="dialog"]:hover {
+  box-shadow: 0 0 20px rgba(255, 199, 119, 0.38);
+}
+
+.wallet-gate {
+  margin: 0 auto;
+  max-width: 720px;
+  border: 1px solid rgba(255, 213, 146, 0.35);
+  border-radius: 20px;
+  background: rgba(19, 12, 8, 0.72);
+  padding: 44px 24px;
+  text-align: center;
+}
+
+.wallet-gate-title {
+  margin: 0;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  color: #fff0d6;
+}
+
+.wallet-gate-text {
+  margin: 16px auto 26px;
+  max-width: 520px;
+  color: rgba(255, 228, 187, 0.9);
+  font-size: 0.92rem;
+}
+
+.wallet-gate-control {
+  display: flex;
+  justify-content: center;
+}
+
+.wallet-gate-control button[aria-haspopup="dialog"],
+.wallet-gate-control button[aria-haspopup="menu"] {
+  border: 1px solid rgba(255, 222, 167, 0.62);
+  border-radius: 12px;
+  padding: 14px 20px;
+  height: auto;
+  font-family: "Press Start 2P", monospace;
+  font-size: 12px;
+  line-height: 1.25;
+  color: #fff1d7;
+  background: linear-gradient(180deg, rgba(255, 214, 145, 0.32), rgba(255, 205, 129, 0.1));
+  box-shadow: 0 0 20px rgba(255, 199, 119, 0.3);
+  transition: 160ms ease;
+}
+
+.wallet-gate-control button[aria-haspopup="dialog"]:hover,
+.wallet-gate-control button[aria-haspopup="menu"]:hover {
+  border-color: rgba(255, 222, 167, 0.88);
+  color: #fff8ec;
+  transform: translateY(-1px);
+  box-shadow: 0 0 26px rgba(255, 199, 119, 0.44);
+}
+
+.bet-input-no-spinner::-webkit-outer-spin-button,
+.bet-input-no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.bet-input-no-spinner[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .wallet-cta {

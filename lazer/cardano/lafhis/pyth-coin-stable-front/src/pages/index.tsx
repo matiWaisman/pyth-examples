@@ -5,19 +5,19 @@ import { CardanoWallet, useWallet } from "@meshsdk/react";
 const steps = [
   {
     title: "1. CONNECT WALLET",
-    text: "Tu identidad es tu wallet Cardano (CIP-30). No hay usuario ni password.",
+    text: "Your identity is your Cardano wallet (CIP-30). No username or password needed.",
   },
   {
     title: "2. CHALLENGE LINK",
-    text: "Elegis asset y monto (10, 25 o 50 ADA). Tu rival elige un asset distinto.",
+    text: "Choose an asset and stake amount (10, 25, or 50 ADA). Your rival picks a different asset.",
   },
   {
     title: "3. RACE WINDOW: 60s",
-    text: "Ambos depositan, arranca el duelo y la UI muestra ticks en vivo.",
+    text: "Both players deposit, the duel starts, and the UI shows live ticks.",
   },
   {
     title: "4. ON-CHAIN RESOLVE",
-    text: "Gana el mayor porcentaje. El pozo se liquida automatico y verificable.",
+    text: "Highest percentage change wins. The pot settles automatically and verifiably.",
   },
 ];
 
@@ -27,10 +27,10 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Duelo de Traders | Web3 Race Arena</title>
+        <title>Traders Duel | Web3 Race Arena</title>
         <meta
           name="description"
-          content="Landing web3 de Duelo de Traders: carrera de activos en Cardano con precios firmados por Pyth."
+          content="Web3 landing for Traders Duel: asset racing on Cardano with Pyth signed prices."
         />
       </Head>
 
@@ -42,13 +42,13 @@ export default function Home() {
             </p>
 
             <h1 className="max-w-4xl text-3xl leading-tight text-amber-50 md:text-5xl">
-              Duelo de Traders
-              <span className="mt-2 block text-amber-300">Validado con Pyth</span>
+              Traders Duel
+              <span className="mt-2 block text-amber-300">Powered by Pyth</span>
             </h1>
 
             <p className="mt-5 max-w-3xl text-sm text-amber-100/90 md:text-base">
-              Dos jugadores, dos activos, un pozo en ADA y una ventana de tiempo.
-              El ganador se define por variacion porcentual usando precios firmados de Pyth.
+              Two players, two assets, one ADA pot, and a time window.
+              The winner is determined by percentage change using Pyth signed prices.
             </p>
 
             <div className="mt-8 grid gap-4 md:grid-cols-[1.25fr_1fr]">
@@ -105,7 +105,7 @@ export default function Home() {
                 </div>
 
                 <p className="mt-4 text-xs text-amber-100/80">
-                  El ganador se define por <strong>% de cambio</strong>. 
+                  The winner is determined by <strong>% change</strong>.
                 </p>
               </div>
 
@@ -114,14 +114,14 @@ export default function Home() {
                   Ready To Enter
                 </p>
                 <p className="mb-4 text-xs text-amber-100/80">
-                  Conecta wallet para crear duelo o aceptar challenge link.
+                  Connect your wallet to create a duel or accept a challenge link.
                 </p>
-                <div className="mb-4">
-                  <CardanoWallet />
+                <div className="wallet-nav-control mb-4">
+                  <CardanoWallet persist />
                 </div>
                 {connected && (
                   <div className="rounded-xl border border-amber-200/25 bg-stone-950/70 p-3 text-xs text-amber-100/85">
-                    Apuesta predefinida: <strong>10 / 25 / 50 ADA</strong>
+                    Preset stake: <strong>10 / 25 / 50 ADA</strong>
                   </div>
                 )}
               </div>
@@ -150,8 +150,8 @@ export default function Home() {
           <div className="rounded-3xl border border-amber-300/35 bg-gradient-to-r from-amber-950/45 via-stone-950/90 to-emerald-950/35 p-6 md:p-8">
             <h2 className="text-xl text-amber-100 md:text-2xl">VERIFIABLE BY DESIGN</h2>
             <p className="mt-3 max-w-3xl text-xs text-amber-100/85 md:text-sm">
-              Usamos Pyth para resolver las apuestas con precios firmados y verificables.
-              Por eso el resultado del duelo es confiable y transparente en Cardano.
+              We use Pyth to settle wagers with signed and verifiable prices.
+              That makes duel outcomes reliable and transparent on Cardano.
             </p>
           </div>
         </section>
