@@ -26,8 +26,7 @@ async function fetchLatestPrices(
   }
 }
 
-function Bar({ pct, color, negative }: { pct: number; color: "violet" | "cyan"; negative: boolean }) {
-  const width = Math.min(Math.abs(pct) * 10, 100);
+function Bar({ width, color, negative }: { width: number; color: "violet" | "cyan"; negative: boolean }) {
   const bg = negative
     ? "bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.6)]"
     : color === "violet"
@@ -49,6 +48,7 @@ function Lane({
   color,
   currentPrice,
   pctChange,
+  barWidth,
   leading,
   winner,
   raceState,
@@ -57,6 +57,7 @@ function Lane({
   color: "violet" | "cyan";
   currentPrice: number | null;
   pctChange: number | null;
+  barWidth: number;
   leading: boolean;
   winner: boolean;
   raceState: RaceState;
@@ -97,7 +98,7 @@ function Lane({
         </div>
       </div>
       {raceState !== "idle" && (
-        <Bar pct={pctChange ?? 0} color={color} negative={negative} />
+        <Bar width={barWidth} color={color} negative={negative} />
       )}
     </div>
   );
@@ -200,6 +201,13 @@ export default function DuelPreview() {
   const adaPct = getPct("ADA/USD");
   const btcPct = getPct("BTC/USD");
   const adaLeading = adaPct !== null && btcPct !== null && adaPct >= btcPct;
+
+  // Scale bars relative to the highest absolute change so the leader always reads ~85%
+  const maxAbs = Math.max(Math.abs(adaPct ?? 0), Math.abs(btcPct ?? 0), 0.00001);
+  const LEADER_WIDTH = 85;
+  const adaBarWidth = adaPct !== null ? (Math.abs(adaPct) / maxAbs) * LEADER_WIDTH : 0;
+  const btcBarWidth = btcPct !== null ? (Math.abs(btcPct) / maxAbs) * LEADER_WIDTH : 0;
+
   const winner: Sym | null =
     raceState === "finished" && adaPct !== null && btcPct !== null
       ? adaPct >= btcPct ? "ADA/USD" : "BTC/USD"
@@ -223,11 +231,11 @@ export default function DuelPreview() {
       </div>
 
       <Lane sym="ADA/USD" color="violet" currentPrice={currentPrices["ADA/USD"] ?? null}
-        pctChange={adaPct} leading={raceState === "running" && adaLeading}
+        pctChange={adaPct} barWidth={adaBarWidth} leading={raceState === "running" && adaLeading}
         winner={winner === "ADA/USD"} raceState={raceState} />
 
       <Lane sym="BTC/USD" color="cyan" currentPrice={currentPrices["BTC/USD"] ?? null}
-        pctChange={btcPct} leading={raceState === "running" && !adaLeading && btcPct !== null}
+        pctChange={btcPct} barWidth={btcBarWidth} leading={raceState === "running" && !adaLeading && btcPct !== null}
         winner={winner === "BTC/USD"} raceState={raceState} />
 
       <div className="flex items-center justify-between rounded-xl border border-slate-700/40 bg-slate-950/50 px-3 py-2.5">

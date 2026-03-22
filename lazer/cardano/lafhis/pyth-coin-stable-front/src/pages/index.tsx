@@ -111,7 +111,7 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="flex min-w-0 flex-col rounded-2xl border border-violet-500/25 bg-slate-900/70 p-4 md:p-6">
+              <div className="race-track flex min-w-0 flex-col rounded-2xl border border-violet-500/25 bg-slate-900/70 p-4 md:p-6">
                 <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-violet-300">
                   How It Works
                 </p>
